@@ -8,6 +8,9 @@ import { ClientProxySmartRanking } from 'src/proxyrmq/client-proxy';
 import { Categoria } from './interfaces/categoria.interface';
 import { lastValueFrom } from 'rxjs';
 import { EventoNome } from './evento-nome.enum';
+import { RankingResponse } from './interfaces/ranking-response.interface';
+import * as momentTimezone from 'moment-timezone';
+import { Desafio } from './interfaces/desafio.interface';
 
 @Injectable()
 export class RankingsService {
@@ -63,6 +66,37 @@ export class RankingsService {
       } else {
         this.logger.error(`unknown error: ${JSON.stringify(error)}`);
         throw new RpcException('unknown error');
+      }
+    }
+  }
+
+  async consultarRankings(
+    idCategoria: string,
+    dataRef: string,
+  ): Promise<RankingResponse[] | RankingResponse> {
+    try {
+      this.logger.log(`idCategoiria: ${idCategoria} - dataRef: ${dataRef}`);
+
+      if (!dataRef) {
+        momentTimezone().tz('America/Sao_Paulo').format('YYYY-MM-DD');
+        this.logger.log(`dataRef: ${dataRef}`);
+      }
+
+      const registrosRanking = await this.desafioModel
+        .find()
+        .where('categoria')
+        .equals(idCategoria)
+        .lean()
+        .exec();
+
+      return;
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(`error: ${JSON.stringify(error.message)}`);
+        throw new RpcException(error.message);
+      } else {
+        this.logger.error(`unknown error: ${JSON.stringify(error)}`);
+        throw new RpcException(`unknown error`);
       }
     }
   }
