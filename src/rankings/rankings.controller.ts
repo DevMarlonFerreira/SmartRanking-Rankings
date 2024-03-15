@@ -1,7 +1,14 @@
 import { Controller, Logger } from '@nestjs/common';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { Partida } from './interfaces/partida.interface';
 import { RankingsService } from './rankings.service';
+import { RankingResponse } from './interfaces/ranking-response.interface';
 
 const ackErrors: string[] = ['E11000'];
 @Controller()
@@ -35,6 +42,23 @@ export class RankingsController {
         this.logger.error(`unknown error: ${JSON.stringify(error)}`);
         // throw new RpcException(`unknown error`);
       }
+    }
+  }
+
+  @MessagePattern('consultar-rankings')
+  async consultarRankings(
+    @Payload() data: any,
+    @Ctx() context: RmqContext,
+  ): Promise<RankingResponse[] | RankingResponse> {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    try {
+      const { idCategoria, dataRef } = data;
+
+      return await this.rankingsService.consultarRankings(idCategoria, dataRef);
+    } finally {
+      await channel.ack(originalMsg);
     }
   }
 }
