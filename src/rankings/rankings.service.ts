@@ -26,6 +26,9 @@ export class RankingsService {
   private clientAdminBackend =
     this.clientProxySmartRanking.getClientProxyAdminBackendInstance();
 
+  private clientDesafios =
+    this.clientProxySmartRanking.getClientProxyDesafiosInstance();
+
   async processarPartida(idPartida: string, partida: Partida): Promise<void> {
     try {
       const categoria$ = this.clientAdminBackend.send(
